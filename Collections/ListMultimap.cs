@@ -4,12 +4,9 @@ using System.Linq;
 
 namespace Silksong.PurenailUtil.Collections;
 
-/// <summary>
-/// A dictionary storing multiple values at each key/
-/// </summary>
-public class HashMultimap<K, V> : IEnumerable<(K, IReadOnlyCollection<V>)>
+public class ListMultimap<K, V> : IEnumerable<(K, IReadOnlyList<V>)>
 {
-    private readonly Dictionary<K, HashSet<V>> dict = [];
+    private readonly Dictionary<K, List<V>> dict = [];
 
     /// <summary>
     /// The set of distinct keys in this multimap.
@@ -24,7 +21,7 @@ public class HashMultimap<K, V> : IEnumerable<(K, IReadOnlyCollection<V>)>
     /// <summary>
     /// Try to get the values for this key.
     /// </summary>
-    public bool TryGetValues(K key, out IReadOnlyCollection<V> values)
+    public bool TryGetValues(K key, out IReadOnlyList<V> values)
     {
         if (dict.TryGetValue(key, out var set))
         {
@@ -39,7 +36,7 @@ public class HashMultimap<K, V> : IEnumerable<(K, IReadOnlyCollection<V>)>
     /// <summary>
     /// Get the values for this key, or an empty collection if none.
     /// </summary>
-    public IReadOnlyCollection<V> Get(K key) => dict.TryGetValue(key, out var set) ? set : EmptyCollection<V>.Instance;
+    public IReadOnlyList<V> Get(K key) => dict.TryGetValue(key, out var set) ? set : EmptyCollection<V>.Instance;
 
     /// <summary>
     /// Clear out the multimap.
@@ -49,35 +46,21 @@ public class HashMultimap<K, V> : IEnumerable<(K, IReadOnlyCollection<V>)>
     /// <summary>
     /// Add the specified key-value pair.
     /// </summary>
-    public bool Add(K key, V value)
+    public void Add(K key, V value)
     {
-        if (dict.TryGetValue(key, out var set)) return set.Add(value);
-        else
-        {
-            dict.Add(key, [value]);
-            return true;
-        }
+        if (dict.TryGetValue(key, out var list)) list.Add(value);
+        else dict.Add(key, [value]);
     }
 
     /// <summary>
     /// Add all the given values for this key.
     /// </summary>
-    public bool Add(K key, IEnumerable<V> values)
+    public void Add(K key, IEnumerable<V> values)
     {
-        if (dict.TryGetValue(key, out var set))
-        {
-            bool changed = false;
-            foreach (var value in values) changed |= set.Add(value);
-            return changed;
-        }
-
-        set = [.. values];
-        if (set.Count == 0) return false;
-
-        dict[key] = set;
-        return true;
+        if (dict.TryGetValue(key, out var list)) list.AddRange(values);
+        else dict.Add(key, [.. values]);
     }
-    
+
     /// <summary>
     /// Remove all values for the given key.
     /// </summary>
@@ -88,9 +71,9 @@ public class HashMultimap<K, V> : IEnumerable<(K, IReadOnlyCollection<V>)>
     /// </summary>
     public bool Remove(K key, V value)
     {
-        if (dict.TryGetValue(key, out var set) && set.Remove(value))
+        if (dict.TryGetValue(key, out var list) && list.Remove(value))
         {
-            if (set.Count == 0) dict.Remove(key);
+            if (list.Count == 0) dict.Remove(key);
             return true;
         }
 
@@ -102,21 +85,21 @@ public class HashMultimap<K, V> : IEnumerable<(K, IReadOnlyCollection<V>)>
     /// </summary>
     public bool Remove(K key, IEnumerable<V> values)
     {
-        if (dict.TryGetValue(key, out var set))
+        if (dict.TryGetValue(key, out var list))
         {
             bool changed = false;
-            foreach (var value in values) changed |= set.Remove(value);
+            foreach (var value in values) changed |= list.Remove(value);
 
-            if (set.Count == 0) dict.Remove(key);
+            if (list.Count == 0) dict.Remove(key);
             return changed;
         }
 
         return false;
     }
 
-    private IEnumerable<(K, IReadOnlyCollection<V>)> EnumeateSets() => dict.Select(e => (e.Key, (IReadOnlyCollection<V>)e.Value));
+    private IEnumerable<(K, IReadOnlyList<V>)> EnumeateLists() => dict.Select(e => (e.Key, (IReadOnlyList<V>)e.Value));
 
-    public IEnumerator<(K, IReadOnlyCollection<V>)> GetEnumerator() => EnumeateSets().GetEnumerator();
+    public IEnumerator<(K, IReadOnlyList<V>)> GetEnumerator() => EnumeateLists().GetEnumerator();
 
-    IEnumerator IEnumerable.GetEnumerator() => EnumeateSets().GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => EnumeateLists().GetEnumerator();
 }

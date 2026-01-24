@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Silksong.PurenailUtil.Collections.Json;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,10 +10,18 @@ namespace Silksong.PurenailUtil.Collections;
 /// <summary>
 /// A hash set with support for duplicate elements.
 /// </summary>
-public class HashMultiset<T> : ICollection<T>
+[JsonConverter(typeof(AbstractJsonConvertibleConverter))]
+public class HashMultiset<T> : AbstractJsonConvertible<List<(T, int)>>, ICollection<T>
 {
     private readonly Dictionary<T, int> elements = [];
     private int total;
+
+    internal override List<(T, int)> ConvertToRep() => [.. elements.Select(e => (e.Key, e.Value))];
+
+    internal override void ReadRep(List<(T, int)> value)
+    {
+        foreach (var (item, count) in value) Add(item, count);
+    }
 
     public HashMultiset() { }
     public HashMultiset(HashMultiset<T> copy)

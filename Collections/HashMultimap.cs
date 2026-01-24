@@ -1,15 +1,25 @@
-﻿using System.Collections;
+﻿using Newtonsoft.Json;
+using Silksong.PurenailUtil.Collections.Json;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Silksong.PurenailUtil.Collections;
 
 /// <summary>
-/// A dictionary storing multiple values at each key/
+/// A dictionary storing multiple values at each key.
 /// </summary>
-public class HashMultimap<K, V> : IEnumerable<(K, IReadOnlyCollection<V>)>
+[JsonConverter(typeof(AbstractJsonConvertibleConverter))]
+public class HashMultimap<K, V> : AbstractJsonConvertible<Dictionary<K, HashSet<V>>>, IEnumerable<(K, IReadOnlyCollection<V>)>
 {
     private readonly Dictionary<K, HashSet<V>> dict = [];
+
+    internal override Dictionary<K, HashSet<V>> ConvertToRep() => dict;
+
+    internal override void ReadRep(Dictionary<K, HashSet<V>> value)
+    {
+        foreach (var e in value) Add(e.Key, e.Value);
+    }
 
     /// <summary>
     /// The set of distinct keys in this multimap.

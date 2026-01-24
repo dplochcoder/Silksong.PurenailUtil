@@ -1,12 +1,25 @@
-﻿using System.Collections;
+﻿using Newtonsoft.Json;
+using Silksong.PurenailUtil.Collections.Json;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Silksong.PurenailUtil.Collections;
 
-public class ListMultimap<K, V> : IEnumerable<(K, IReadOnlyList<V>)>
+/// <summary>
+/// Like a hash multimap, but values per key are ordered as a list rather than deduped as a set.
+/// </summary>
+[JsonConverter(typeof(AbstractJsonConvertibleConverter))]
+public class ListMultimap<K, V> : AbstractJsonConvertible<Dictionary<K, List<V>>>, IEnumerable<(K, IReadOnlyList<V>)>
 {
     private readonly Dictionary<K, List<V>> dict = [];
+
+    internal override Dictionary<K, List<V>> ConvertToRep() => dict;
+
+    internal override void ReadRep(Dictionary<K, List<V>> value)
+    {
+        foreach (var e in value) Add(e.Key, e.Value);
+    }
 
     /// <summary>
     /// The set of distinct keys in this multimap.

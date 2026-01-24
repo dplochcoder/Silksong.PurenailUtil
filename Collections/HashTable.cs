@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using Newtonsoft.Json;
+using Silksong.PurenailUtil.Collections.Json;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
@@ -7,9 +9,19 @@ namespace Silksong.PurenailUtil.Collections;
 /// <summary>
 /// Two dimensional Dictionary, with easy adds, removals, and lookups.
 /// </summary>
-public class HashTable<K1, K2, V> : IEnumerable<((K1, K2), V)>
+[JsonConverter(typeof(AbstractJsonConvertibleConverter))]
+public class HashTable<K1, K2, V> : AbstractJsonConvertible<Dictionary<K1, Dictionary<K2, V>>>, IEnumerable<((K1, K2), V)>
 {
     private readonly Dictionary<K1, Dictionary<K2, V>> table = [];
+
+    internal override Dictionary<K1, Dictionary<K2, V>> ConvertToRep() => table;
+
+    internal override void ReadRep(Dictionary<K1, Dictionary<K2, V>> value)
+    {
+        foreach (var e1 in value)
+            foreach (var e2 in e1.Value)
+                Set(e1.Key, e2.Key, e2.Value);
+    }
 
     /// <summary>
     /// Get or set the value at this entry.

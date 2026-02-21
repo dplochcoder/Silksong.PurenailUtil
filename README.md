@@ -1,3 +1,5 @@
 # Silksong.PurenailUtil
 
-A Hollow Knight: Silksong mod.
+A variety of utilities for C# modding, and in some cases Silksong specifically.
+
+Mostly collection helpers currently.

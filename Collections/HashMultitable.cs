@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using Newtonsoft.Json;
+using Silksong.PurenailUtil.Collections.Json;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -7,9 +9,17 @@ namespace Silksong.PurenailUtil.Collections;
 /// <summary>
 /// A HashTable storing multiple values at each entry.
 /// </summary>
-public class HashMultitable<K1, K2, V> : IEnumerable<((K1, K2), IReadOnlyCollection<V>)>
+[JsonConverter(typeof(AbstractJsonConvertibleConverter))]
+public class HashMultitable<K1, K2, V> : AbstractJsonConvertible<HashTable<K1, K2, HashSet<V>>>, IEnumerable<((K1, K2), IReadOnlyCollection<V>)>
 {
     private readonly HashTable<K1, K2, HashSet<V>> table = [];
+
+    internal override HashTable<K1, K2, HashSet<V>> ConvertToRep() => table;
+
+    internal override void ReadRep(HashTable<K1, K2, HashSet<V>> value)
+    {
+        foreach (var (keys, values) in value) Add(keys.Item1, keys.Item2, values);
+    }
 
     /// <summary>
     /// Remove all entries for this multi-table.

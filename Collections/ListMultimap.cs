@@ -7,16 +7,16 @@ using System.Linq;
 namespace Silksong.PurenailUtil.Collections;
 
 /// <summary>
-/// A dictionary storing multiple values at each key.
+/// Like a hash multimap, but values per key are ordered as a list rather than deduped as a set.
 /// </summary>
 [JsonConverter(typeof(AbstractJsonConvertibleConverter))]
-public class HashMultimap<K, V> : AbstractJsonConvertible<Dictionary<K, HashSet<V>>>, IEnumerable<(K, IReadOnlyCollection<V>)>
+public class ListMultimap<K, V> : AbstractJsonConvertible<Dictionary<K, List<V>>>, IEnumerable<(K, IReadOnlyList<V>)>
 {
-    private readonly Dictionary<K, HashSet<V>> dict = [];
+    private readonly Dictionary<K, List<V>> dict = [];
 
-    internal override Dictionary<K, HashSet<V>> ConvertToRep() => dict;
+    internal override Dictionary<K, List<V>> ConvertToRep() => dict;
 
-    internal override void ReadRep(Dictionary<K, HashSet<V>> value)
+    internal override void ReadRep(Dictionary<K, List<V>> value)
     {
         foreach (var e in value) Add(e.Key, e.Value);
     }
@@ -34,7 +34,7 @@ public class HashMultimap<K, V> : AbstractJsonConvertible<Dictionary<K, HashSet<
     /// <summary>
     /// Try to get the values for this key.
     /// </summary>
-    public bool TryGetValues(K key, out IReadOnlyCollection<V> values)
+    public bool TryGetValues(K key, out IReadOnlyList<V> values)
     {
         if (dict.TryGetValue(key, out var set))
         {
@@ -49,7 +49,7 @@ public class HashMultimap<K, V> : AbstractJsonConvertible<Dictionary<K, HashSet<
     /// <summary>
     /// Get the values for this key, or an empty collection if none.
     /// </summary>
-    public IReadOnlyCollection<V> Get(K key) => dict.TryGetValue(key, out var set) ? set : EmptyCollection<V>.Instance;
+    public IReadOnlyList<V> Get(K key) => dict.TryGetValue(key, out var set) ? set : EmptyCollection<V>.Instance;
 
     /// <summary>
     /// Clear out the multimap.
@@ -59,35 +59,21 @@ public class HashMultimap<K, V> : AbstractJsonConvertible<Dictionary<K, HashSet<
     /// <summary>
     /// Add the specified key-value pair.
     /// </summary>
-    public bool Add(K key, V value)
+    public void Add(K key, V value)
     {
-        if (dict.TryGetValue(key, out var set)) return set.Add(value);
-        else
-        {
-            dict.Add(key, [value]);
-            return true;
-        }
+        if (dict.TryGetValue(key, out var list)) list.Add(value);
+        else dict.Add(key, [value]);
     }
 
     /// <summary>
     /// Add all the given values for this key.
     /// </summary>
-    public bool Add(K key, IEnumerable<V> values)
+    public void Add(K key, IEnumerable<V> values)
     {
-        if (dict.TryGetValue(key, out var set))
-        {
-            bool changed = false;
-            foreach (var value in values) changed |= set.Add(value);
-            return changed;
-        }
-
-        set = [.. values];
-        if (set.Count == 0) return false;
-
-        dict[key] = set;
-        return true;
+        if (dict.TryGetValue(key, out var list)) list.AddRange(values);
+        else dict.Add(key, [.. values]);
     }
-    
+
     /// <summary>
     /// Remove all values for the given key.
     /// </summary>
@@ -98,9 +84,9 @@ public class HashMultimap<K, V> : AbstractJsonConvertible<Dictionary<K, HashSet<
     /// </summary>
     public bool Remove(K key, V value)
     {
-        if (dict.TryGetValue(key, out var set) && set.Remove(value))
+        if (dict.TryGetValue(key, out var list) && list.Remove(value))
         {
-            if (set.Count == 0) dict.Remove(key);
+            if (list.Count == 0) dict.Remove(key);
             return true;
         }
 
@@ -112,21 +98,21 @@ public class HashMultimap<K, V> : AbstractJsonConvertible<Dictionary<K, HashSet<
     /// </summary>
     public bool Remove(K key, IEnumerable<V> values)
     {
-        if (dict.TryGetValue(key, out var set))
+        if (dict.TryGetValue(key, out var list))
         {
             bool changed = false;
-            foreach (var value in values) changed |= set.Remove(value);
+            foreach (var value in values) changed |= list.Remove(value);
 
-            if (set.Count == 0) dict.Remove(key);
+            if (list.Count == 0) dict.Remove(key);
             return changed;
         }
 
         return false;
     }
 
-    private IEnumerable<(K, IReadOnlyCollection<V>)> EnumeateSets() => dict.Select(e => (e.Key, (IReadOnlyCollection<V>)e.Value));
+    private IEnumerable<(K, IReadOnlyList<V>)> EnumeateLists() => dict.Select(e => (e.Key, (IReadOnlyList<V>)e.Value));
 
-    public IEnumerator<(K, IReadOnlyCollection<V>)> GetEnumerator() => EnumeateSets().GetEnumerator();
+    public IEnumerator<(K, IReadOnlyList<V>)> GetEnumerator() => EnumeateLists().GetEnumerator();
 
-    IEnumerator IEnumerable.GetEnumerator() => EnumeateSets().GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => EnumeateLists().GetEnumerator();
 }

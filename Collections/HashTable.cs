@@ -1,8 +1,8 @@
-﻿using Newtonsoft.Json;
-using Silksong.PurenailUtil.Collections.Json;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Newtonsoft.Json;
+using Silksong.PurenailUtil.Collections.Json;
 
 namespace Silksong.PurenailUtil.Collections;
 
@@ -10,7 +10,9 @@ namespace Silksong.PurenailUtil.Collections;
 /// Two dimensional Dictionary, with easy adds, removals, and lookups.
 /// </summary>
 [JsonConverter(typeof(AbstractJsonConvertibleConverter))]
-public class HashTable<K1, K2, V> : AbstractJsonConvertible<Dictionary<K1, Dictionary<K2, V>>>, IEnumerable<((K1, K2), V)>
+public class HashTable<K1, K2, V>
+    : AbstractJsonConvertible<Dictionary<K1, Dictionary<K2, V>>>,
+        IEnumerable<((K1, K2), V)>
 {
     private readonly Dictionary<K1, Dictionary<K2, V>> table = [];
 
@@ -19,8 +21,8 @@ public class HashTable<K1, K2, V> : AbstractJsonConvertible<Dictionary<K1, Dicti
     internal override void ReadRep(Dictionary<K1, Dictionary<K2, V>> value)
     {
         foreach (var e1 in value)
-            foreach (var e2 in e1.Value)
-                Set(e1.Key, e2.Key, e2.Value);
+        foreach (var e2 in e1.Value)
+            Set(e1.Key, e2.Key, e2.Value);
     }
 
     /// <summary>
@@ -28,7 +30,10 @@ public class HashTable<K1, K2, V> : AbstractJsonConvertible<Dictionary<K1, Dicti
     /// </summary>
     public V this[K1 key1, K2 key2]
     {
-        get => TryGetValue(key1, key2, out var value) ? value : throw new KeyNotFoundException($"({key1}, {key2})");
+        get =>
+            TryGetValue(key1, key2, out var value)
+                ? value
+                : throw new KeyNotFoundException($"({key1}, {key2})");
         set => Set(key1, key2, value);
     }
 
@@ -42,7 +47,8 @@ public class HashTable<K1, K2, V> : AbstractJsonConvertible<Dictionary<K1, Dicti
     /// </summary>
     public bool TryGetValue(K1 key1, K2 key2, [MaybeNullWhen(false)] out V value)
     {
-        if (table.TryGetValue(key1, out var dict) && dict.TryGetValue(key2, out value)) return true;
+        if (table.TryGetValue(key1, out var dict) && dict.TryGetValue(key2, out value))
+            return true;
 
         value = default;
         return false;
@@ -53,8 +59,9 @@ public class HashTable<K1, K2, V> : AbstractJsonConvertible<Dictionary<K1, Dicti
     /// </summary>
     public void Set(K1 key1, K2 key2, V value)
     {
-        if (table.TryGetValue(key1, out var dict)) dict[key2] = value;
-        else 
+        if (table.TryGetValue(key1, out var dict))
+            dict[key2] = value;
+        else
         {
             dict = [];
             dict.Add(key2, value);
@@ -74,7 +81,8 @@ public class HashTable<K1, K2, V> : AbstractJsonConvertible<Dictionary<K1, Dicti
     {
         if (table.TryGetValue(key1, out var dict) && dict.Remove(key2))
         {
-            if (dict.Count == 0) table.Remove(key1);
+            if (dict.Count == 0)
+                table.Remove(key1);
             return true;
         }
 
@@ -84,8 +92,8 @@ public class HashTable<K1, K2, V> : AbstractJsonConvertible<Dictionary<K1, Dicti
     private IEnumerable<((K1, K2), V)> EnumerateEntries()
     {
         foreach (var e1 in table)
-            foreach (var e2 in e1.Value)
-                yield return ((e1.Key, e2.Key), e2.Value);
+        foreach (var e2 in e1.Value)
+            yield return ((e1.Key, e2.Key), e2.Value);
     }
 
     public IEnumerator<((K1, K2), V)> GetEnumerator() => EnumerateEntries().GetEnumerator();

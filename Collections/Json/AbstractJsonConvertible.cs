@@ -11,7 +11,8 @@ public abstract class AbstractJsonConvertible
     internal abstract void ReadRepRaw(object value);
 }
 
-public abstract class AbstractJsonConvertible<RepT> : AbstractJsonConvertible where RepT : class
+public abstract class AbstractJsonConvertible<RepT> : AbstractJsonConvertible
+    where RepT : class
 {
     internal override Type GetRepType() => typeof(RepT);
 

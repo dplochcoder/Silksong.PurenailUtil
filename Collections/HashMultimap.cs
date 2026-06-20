@@ -1,8 +1,8 @@
-﻿using Newtonsoft.Json;
-using Silksong.PurenailUtil.Collections.Json;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
+using Silksong.PurenailUtil.Collections.Json;
 
 namespace Silksong.PurenailUtil.Collections;
 
@@ -10,7 +10,9 @@ namespace Silksong.PurenailUtil.Collections;
 /// A dictionary storing multiple values at each key.
 /// </summary>
 [JsonConverter(typeof(AbstractJsonConvertibleConverter))]
-public class HashMultimap<K, V> : AbstractJsonConvertible<Dictionary<K, HashSet<V>>>, IEnumerable<(K, IReadOnlyCollection<V>)>
+public class HashMultimap<K, V>
+    : AbstractJsonConvertible<Dictionary<K, HashSet<V>>>,
+        IEnumerable<(K, IReadOnlyCollection<V>)>
 {
     private readonly Dictionary<K, HashSet<V>> dict = [];
 
@@ -18,7 +20,8 @@ public class HashMultimap<K, V> : AbstractJsonConvertible<Dictionary<K, HashSet<
 
     internal override void ReadRep(Dictionary<K, HashSet<V>> value)
     {
-        foreach (var e in value) Add(e.Key, e.Value);
+        foreach (var e in value)
+            Add(e.Key, e.Value);
     }
 
     /// <summary>
@@ -49,7 +52,8 @@ public class HashMultimap<K, V> : AbstractJsonConvertible<Dictionary<K, HashSet<
     /// <summary>
     /// Get the values for this key, or an empty collection if none.
     /// </summary>
-    public IReadOnlyCollection<V> Get(K key) => dict.TryGetValue(key, out var set) ? set : EmptyCollection<V>.Instance;
+    public IReadOnlyCollection<V> Get(K key) =>
+        dict.TryGetValue(key, out var set) ? set : EmptyCollection<V>.Instance;
 
     /// <summary>
     /// Clear out the multimap.
@@ -61,7 +65,8 @@ public class HashMultimap<K, V> : AbstractJsonConvertible<Dictionary<K, HashSet<
     /// </summary>
     public bool Add(K key, V value)
     {
-        if (dict.TryGetValue(key, out var set)) return set.Add(value);
+        if (dict.TryGetValue(key, out var set))
+            return set.Add(value);
         else
         {
             dict.Add(key, [value]);
@@ -77,17 +82,19 @@ public class HashMultimap<K, V> : AbstractJsonConvertible<Dictionary<K, HashSet<
         if (dict.TryGetValue(key, out var set))
         {
             bool changed = false;
-            foreach (var value in values) changed |= set.Add(value);
+            foreach (var value in values)
+                changed |= set.Add(value);
             return changed;
         }
 
         set = [.. values];
-        if (set.Count == 0) return false;
+        if (set.Count == 0)
+            return false;
 
         dict[key] = set;
         return true;
     }
-    
+
     /// <summary>
     /// Remove all values for the given key.
     /// </summary>
@@ -100,7 +107,8 @@ public class HashMultimap<K, V> : AbstractJsonConvertible<Dictionary<K, HashSet<
     {
         if (dict.TryGetValue(key, out var set) && set.Remove(value))
         {
-            if (set.Count == 0) dict.Remove(key);
+            if (set.Count == 0)
+                dict.Remove(key);
             return true;
         }
 
@@ -115,18 +123,22 @@ public class HashMultimap<K, V> : AbstractJsonConvertible<Dictionary<K, HashSet<
         if (dict.TryGetValue(key, out var set))
         {
             bool changed = false;
-            foreach (var value in values) changed |= set.Remove(value);
+            foreach (var value in values)
+                changed |= set.Remove(value);
 
-            if (set.Count == 0) dict.Remove(key);
+            if (set.Count == 0)
+                dict.Remove(key);
             return changed;
         }
 
         return false;
     }
 
-    private IEnumerable<(K, IReadOnlyCollection<V>)> EnumeateSets() => dict.Select(e => (e.Key, (IReadOnlyCollection<V>)e.Value));
+    private IEnumerable<(K, IReadOnlyCollection<V>)> EnumeateSets() =>
+        dict.Select(e => (e.Key, (IReadOnlyCollection<V>)e.Value));
 
-    public IEnumerator<(K, IReadOnlyCollection<V>)> GetEnumerator() => EnumeateSets().GetEnumerator();
+    public IEnumerator<(K, IReadOnlyCollection<V>)> GetEnumerator() =>
+        EnumeateSets().GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => EnumeateSets().GetEnumerator();
 }

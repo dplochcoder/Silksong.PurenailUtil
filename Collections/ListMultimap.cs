@@ -1,8 +1,8 @@
-﻿using Newtonsoft.Json;
-using Silksong.PurenailUtil.Collections.Json;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
+using Silksong.PurenailUtil.Collections.Json;
 
 namespace Silksong.PurenailUtil.Collections;
 
@@ -10,7 +10,9 @@ namespace Silksong.PurenailUtil.Collections;
 /// Like a hash multimap, but values per key are ordered as a list rather than deduped as a set.
 /// </summary>
 [JsonConverter(typeof(AbstractJsonConvertibleConverter))]
-public class ListMultimap<K, V> : AbstractJsonConvertible<Dictionary<K, List<V>>>, IEnumerable<(K, IReadOnlyList<V>)>
+public class ListMultimap<K, V>
+    : AbstractJsonConvertible<Dictionary<K, List<V>>>,
+        IEnumerable<(K, IReadOnlyList<V>)>
 {
     private readonly Dictionary<K, List<V>> dict = [];
 
@@ -18,7 +20,8 @@ public class ListMultimap<K, V> : AbstractJsonConvertible<Dictionary<K, List<V>>
 
     internal override void ReadRep(Dictionary<K, List<V>> value)
     {
-        foreach (var e in value) Add(e.Key, e.Value);
+        foreach (var e in value)
+            Add(e.Key, e.Value);
     }
 
     /// <summary>
@@ -49,7 +52,8 @@ public class ListMultimap<K, V> : AbstractJsonConvertible<Dictionary<K, List<V>>
     /// <summary>
     /// Get the values for this key, or an empty collection if none.
     /// </summary>
-    public IReadOnlyList<V> Get(K key) => dict.TryGetValue(key, out var set) ? set : EmptyCollection<V>.Instance;
+    public IReadOnlyList<V> Get(K key) =>
+        dict.TryGetValue(key, out var set) ? set : EmptyCollection<V>.Instance;
 
     /// <summary>
     /// Clear out the multimap.
@@ -61,8 +65,10 @@ public class ListMultimap<K, V> : AbstractJsonConvertible<Dictionary<K, List<V>>
     /// </summary>
     public void Add(K key, V value)
     {
-        if (dict.TryGetValue(key, out var list)) list.Add(value);
-        else dict.Add(key, [value]);
+        if (dict.TryGetValue(key, out var list))
+            list.Add(value);
+        else
+            dict.Add(key, [value]);
     }
 
     /// <summary>
@@ -70,8 +76,10 @@ public class ListMultimap<K, V> : AbstractJsonConvertible<Dictionary<K, List<V>>
     /// </summary>
     public void Add(K key, IEnumerable<V> values)
     {
-        if (dict.TryGetValue(key, out var list)) list.AddRange(values);
-        else dict.Add(key, [.. values]);
+        if (dict.TryGetValue(key, out var list))
+            list.AddRange(values);
+        else
+            dict.Add(key, [.. values]);
     }
 
     /// <summary>
@@ -86,7 +94,8 @@ public class ListMultimap<K, V> : AbstractJsonConvertible<Dictionary<K, List<V>>
     {
         if (dict.TryGetValue(key, out var list) && list.Remove(value))
         {
-            if (list.Count == 0) dict.Remove(key);
+            if (list.Count == 0)
+                dict.Remove(key);
             return true;
         }
 
@@ -101,16 +110,19 @@ public class ListMultimap<K, V> : AbstractJsonConvertible<Dictionary<K, List<V>>
         if (dict.TryGetValue(key, out var list))
         {
             bool changed = false;
-            foreach (var value in values) changed |= list.Remove(value);
+            foreach (var value in values)
+                changed |= list.Remove(value);
 
-            if (list.Count == 0) dict.Remove(key);
+            if (list.Count == 0)
+                dict.Remove(key);
             return changed;
         }
 
         return false;
     }
 
-    private IEnumerable<(K, IReadOnlyList<V>)> EnumeateLists() => dict.Select(e => (e.Key, (IReadOnlyList<V>)e.Value));
+    private IEnumerable<(K, IReadOnlyList<V>)> EnumeateLists() =>
+        dict.Select(e => (e.Key, (IReadOnlyList<V>)e.Value));
 
     public IEnumerator<(K, IReadOnlyList<V>)> GetEnumerator() => EnumeateLists().GetEnumerator();
 

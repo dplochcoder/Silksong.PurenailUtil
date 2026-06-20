@@ -1,9 +1,9 @@
-﻿using Newtonsoft.Json;
-using Silksong.PurenailUtil.Collections.Json;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
+using Silksong.PurenailUtil.Collections.Json;
 
 namespace Silksong.PurenailUtil.Collections;
 
@@ -20,18 +20,23 @@ public class HashMultiset<T> : AbstractJsonConvertible<List<(T, int)>>, ICollect
 
     internal override void ReadRep(List<(T, int)> value)
     {
-        foreach (var (item, count) in value) Add(item, count);
+        foreach (var (item, count) in value)
+            Add(item, count);
     }
 
     public HashMultiset() { }
+
     public HashMultiset(HashMultiset<T> copy)
     {
-        foreach (var e in copy.elements) elements[e.Key] = e.Value;
+        foreach (var e in copy.elements)
+            elements[e.Key] = e.Value;
         total = copy.total;
     }
+
     public HashMultiset(IEnumerable<T> elements)
     {
-        foreach (var element in elements) Add(element);
+        foreach (var element in elements)
+            Add(element);
     }
 
     /// <summary>
@@ -79,8 +84,10 @@ public class HashMultiset<T> : AbstractJsonConvertible<List<(T, int)>>, ICollect
     /// </summary>
     public void Add(T element, int count)
     {
-        if (count == 0) return;
-        if (count < 0) throw new ArgumentException($"{nameof(count)}: {count}");
+        if (count == 0)
+            return;
+        if (count < 0)
+            throw new ArgumentException($"{nameof(count)}: {count}");
 
         elements[element] = Count(element) + count;
         total += count;
@@ -96,7 +103,8 @@ public class HashMultiset<T> : AbstractJsonConvertible<List<(T, int)>>, ICollect
     /// </summary>
     public void AddRange(IEnumerable<T> elements)
     {
-        foreach (var element in elements) Add(element);
+        foreach (var element in elements)
+            Add(element);
     }
 
     /// <summary>
@@ -104,14 +112,18 @@ public class HashMultiset<T> : AbstractJsonConvertible<List<(T, int)>>, ICollect
     /// </summary>
     public bool Set(T element, int count)
     {
-        if (count < 0) throw new ArgumentException($"{nameof(count)}: {count}");
+        if (count < 0)
+            throw new ArgumentException($"{nameof(count)}: {count}");
 
         var prev = Count(element);
-        if (count == prev) return false;
+        if (count == prev)
+            return false;
 
         total += count - prev;
-        if (count == 0) elements.Remove(element);
-        else elements[element] = count;
+        if (count == 0)
+            elements.Remove(element);
+        else
+            elements[element] = count;
         return true;
     }
 
@@ -121,12 +133,15 @@ public class HashMultiset<T> : AbstractJsonConvertible<List<(T, int)>>, ICollect
     /// <returns>The number of elements removed.</returns>
     public int Remove(T element, int count)
     {
-        if (count == 0) return 0;
-        if (count < 0) throw new ArgumentException($"{nameof(count)}: {count}");
+        if (count == 0)
+            return 0;
+        if (count < 0)
+            throw new ArgumentException($"{nameof(count)}: {count}");
 
         var prev = Count(element);
-        if (prev == 0) return 0;
-        
+        if (prev == 0)
+            return 0;
+
         if (count >= prev)
         {
             elements.Remove(element);
@@ -151,7 +166,8 @@ public class HashMultiset<T> : AbstractJsonConvertible<List<(T, int)>>, ICollect
     /// </summary>
     public void CopyTo(T[] array, int arrayIndex)
     {
-        foreach (var element in this) array[arrayIndex++] = element;
+        foreach (var element in this)
+            array[arrayIndex++] = element;
     }
 
     private IEnumerable<T> Enumerate()

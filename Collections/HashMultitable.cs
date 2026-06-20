@@ -1,8 +1,8 @@
-﻿using Newtonsoft.Json;
-using Silksong.PurenailUtil.Collections.Json;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
+using Silksong.PurenailUtil.Collections.Json;
 
 namespace Silksong.PurenailUtil.Collections;
 
@@ -10,7 +10,9 @@ namespace Silksong.PurenailUtil.Collections;
 /// A HashTable storing multiple values at each entry.
 /// </summary>
 [JsonConverter(typeof(AbstractJsonConvertibleConverter))]
-public class HashMultitable<K1, K2, V> : AbstractJsonConvertible<HashTable<K1, K2, HashSet<V>>>, IEnumerable<((K1, K2), IReadOnlyCollection<V>)>
+public class HashMultitable<K1, K2, V>
+    : AbstractJsonConvertible<HashTable<K1, K2, HashSet<V>>>,
+        IEnumerable<((K1, K2), IReadOnlyCollection<V>)>
 {
     private readonly HashTable<K1, K2, HashSet<V>> table = [];
 
@@ -18,7 +20,8 @@ public class HashMultitable<K1, K2, V> : AbstractJsonConvertible<HashTable<K1, K
 
     internal override void ReadRep(HashTable<K1, K2, HashSet<V>> value)
     {
-        foreach (var (keys, values) in value) Add(keys.Item1, keys.Item2, values);
+        foreach (var (keys, values) in value)
+            Add(keys.Item1, keys.Item2, values);
     }
 
     /// <summary>
@@ -44,14 +47,16 @@ public class HashMultitable<K1, K2, V> : AbstractJsonConvertible<HashTable<K1, K
     /// <summary>
     /// Get the values at this entry. or an empty collection if none.
     /// </summary>
-    public IReadOnlyCollection<V> Get(K1 key1, K2 key2) => TryGetValues(key1, key2, out var values) ? values : EmptyCollection<V>.Instance;
+    public IReadOnlyCollection<V> Get(K1 key1, K2 key2) =>
+        TryGetValues(key1, key2, out var values) ? values : EmptyCollection<V>.Instance;
 
     /// <summary>
     /// Add the given value to this entry.
     /// </summary>
     public bool Add(K1 key1, K2 key2, V value)
     {
-        if (table.TryGetValue(key1, key2, out var set)) return set.Add(value);
+        if (table.TryGetValue(key1, key2, out var set))
+            return set.Add(value);
         else
         {
             table.Set(key1, key2, [value]);
@@ -67,12 +72,14 @@ public class HashMultitable<K1, K2, V> : AbstractJsonConvertible<HashTable<K1, K
         if (table.TryGetValue(key1, key2, out var set))
         {
             bool changed = false;
-            foreach (var value in values) changed |= set.Add(value);
+            foreach (var value in values)
+                changed |= set.Add(value);
             return changed;
         }
 
         set = [.. values];
-        if (set.Count == 0) return false;
+        if (set.Count == 0)
+            return false;
 
         table.Set(key1, key2, set);
         return true;
@@ -95,7 +102,8 @@ public class HashMultitable<K1, K2, V> : AbstractJsonConvertible<HashTable<K1, K
     {
         if (table.TryGetValue(key1, key2, out var set) && set.Remove(value))
         {
-            if (set.Count == 0) table.Remove(key1, key2);
+            if (set.Count == 0)
+                table.Remove(key1, key2);
             return true;
         }
 
@@ -110,18 +118,22 @@ public class HashMultitable<K1, K2, V> : AbstractJsonConvertible<HashTable<K1, K
         if (table.TryGetValue(key1, key2, out var set))
         {
             bool changed = false;
-            foreach (var value in values) changed |= set.Remove(value);
+            foreach (var value in values)
+                changed |= set.Remove(value);
 
-            if (set.Count == 0) table.Remove(key1, key2);
+            if (set.Count == 0)
+                table.Remove(key1, key2);
             return changed;
         }
 
         return false;
     }
 
-    private IEnumerable<((K1, K2), IReadOnlyCollection<V>)> EnumerateEntries() => table.Select(e => (e.Item1, (IReadOnlyCollection<V>)e.Item2));
+    private IEnumerable<((K1, K2), IReadOnlyCollection<V>)> EnumerateEntries() =>
+        table.Select(e => (e.Item1, (IReadOnlyCollection<V>)e.Item2));
 
-    public IEnumerator<((K1, K2), IReadOnlyCollection<V>)> GetEnumerator() => EnumerateEntries().GetEnumerator();
+    public IEnumerator<((K1, K2), IReadOnlyCollection<V>)> GetEnumerator() =>
+        EnumerateEntries().GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => EnumerateEntries().GetEnumerator();
 }
